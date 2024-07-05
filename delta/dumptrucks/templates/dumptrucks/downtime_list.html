@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block title %}لیست خرابی‌ها{% endblock %}
+
+{% block extra_css %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">لیست خرابی‌ها</h1>
+    </div>
+    <nav class="mb-4">
+        <ul class="nav nav-pills">
+            <li class="nav-item"><a class="nav-link" href="{% url 'operator_list' %}">لیست اپراتورها</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'dump_truck_list' %}">لیست دستگاه‌ها</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'failure_reason_list' %}">لیست علت‌های خرابی</a></li>
+        </ul>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <button class="btn btn-primary" data-toggle="modal" data-target="#addDowntimeModal"><i class="fas fa-plus"></i> ایجاد خرابی جدید</button>
+        <a class="btn btn-success" href="{% url 'export_downtimes_to_excel' %}?start_date={{ start_date }}&end_date={{ end_date }}&q={{ search_query }}"><i class="fas fa-file-excel"></i> خروجی اکسل</a>
+    </div>
+    <div class="row mb-4">
+        <div class="col-md-4 mb-2">
+            <input class="form-control" id="myInput" type="text" placeholder="جستجو..." value="{{ search_query }}">
+        </div>
+        <div class="col-md-3 mb-2">
+            <input type="text" id="start_date" class="form-control" placeholder="از تاریخ" value="{{ start_date }}">
+        </div>
+        <div class="col-md-3 mb-2">
+            <input type="text" id="end_date" class="form-control" placeholder="تا تاریخ" value="{{ end_date }}">
+        </div>
+        <div class="col-md-2 mb-2">
+            <button id="filter" class="btn btn-secondary btn-block"><i class="fas fa-filter"></i> فیلتر</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered" id="myTable">
+            <thead>
+                <tr>
+                    <th>کد پرسنلی</th>
+                    <th>نام اپراتور</th>
+                    <th>دامپ تراک</th>
+                    <th>علت خرابی</th>
+                    <th>زمان شروع</th>
+                    <th>زمان پایان</th>
+                    <th>ثبت کننده</th>
+                    <th>مدت زمان خرابی</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for downtime in downtimes %}
+                    <tr>
+                        <td>{{ downtime.operator.personnel_code }}</td>
+                        <td>{{ downtime.operator.first_name }} {{ downtime.operator.last_name }}</td>
+                        <td>{{ downtime.dump_truck.code }}</td>
+                        <td>{{ downtime.reason }}</td>
+                        <td>{{ downtime.start_time_jalali }}</td>
+                        <td>{{ downtime.end_time_jalali }}</td>
+                        <td>{{ downtime.created_by.username }}</td>
+                        <td>{{ downtime.duration }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editDowntimeModal" 
+                                data-id="{{ downtime.id }}"
+                                data-operator="{{ downtime.operator.id }}"
+                                data-dump-truck="{{ downtime.dump_truck.id }}"
+                                data-reason="{{ downtime.reason }}"
+                                data-start-date="{{ downtime.start_time_jalali }}"
+                                data-end-date="{{ downtime.end_time_jalali }}"
+                                data-start-time="{{ downtime.start_time }}"
+                                data-end-time="{{ downtime.end_time }}">
+                                <i class="fas fa-edit"></i> ویرایش
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Downtime Modal -->
+<div class="modal fade" id="addDowntimeModal" tabindex="-1" role="dialog" aria-labelledby="addDowntimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="{% url 'downtime_create' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addDowntimeModalLabel">ایجاد خرابی جدید</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                    <button type="submit" class="btn btn-primary">ذخیره</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Downtime Modal -->
+<div class="modal fade" id="editDowntimeModal" tabindex="-1" role="dialog" aria-labelledby="editDowntimeModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" id="editDowntimeForm">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editDowntimeModalLabel">ویرایش خرابی</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {{ form.as_p }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                    <button type="submit" class="btn btn-primary">ذخیره</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $("#myInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#myTable tbody tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+
+        $("#start_date").persianDatepicker({
+            format: 'YYYY-MM-DD',
+            autoClose: true
+        });
+        $("#end_date").persianDatepicker({
+            format: 'YYYY-MM-DD',
+            autoClose: true
+        });
+
+        $("#filter").on("click", function() {
+            var start_date = $("#start_date").val();
+            var end_date = $("#end_date").val();
+            var search_query = $("#myInput").val();
+            window.location.href = window.location.pathname + "?start_date=" + start_date + "&end_date=" + end_date + "&q=" + search_query;
+        });
+
+        $('#addDowntimeModal').on('shown.bs.modal', function () {
+            $('#id_start_date').persianDatepicker({
+                format: 'YYYY-MM-DD',
+                autoClose: true,
+                initialValue: false,
+                calendarType: 'persian'
+            });
+            $('#id_end_date').persianDatepicker({
+                format: 'YYYY-MM-DD',
+                autoClose: true,
+                initialValue: false,
+                calendarType: 'persian'
+            });
+
+            $('#id_start_time').timepicker({
+                showMeridian: false,
+                defaultTime: 'current',
+                minuteStep: 1
+            });
+
+            $('#id_end_time').timepicker({
+                showMeridian: false,
+                defaultTime: 'current',
+                minuteStep: 1
+            });
+
+            // Initialize select2 on operator and dump truck fields
+            $('#id_operator').select2({
+                placeholder: 'انتخاب اپراتور',
+                allowClear: true
+            });
+            $('#id_dump_truck').select2({
+                placeholder: 'انتخاب دامپ تراک',
+                allowClear: true
+            });
+        });
+
+        // Load data into edit modal
+        $('#editDowntimeModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget); 
+            var id = button.data('id');
+            var operator = button.data('operator');
+            var dumpTruck = button.data('dump-truck');
+            var reason = button.data('reason');
+            var startDate = button.data('start-date');
+            var endDate = button.data('end-date');
+            var startTime = button.data('start-time');
+            var endTime = button.data('end-time');
+            
+            var modal = $(this);
+            modal.find('#editDowntimeForm').attr('action', '{% url "downtime_edit" "0" %}'.replace('0', id));
+            modal.find('#id_operator').val(operator).trigger('change');
+            modal.find('#id_dump_truck').val(dumpTruck).trigger('change');
+            modal.find('#id_reason').val(reason);
+            modal.find('#id_start_date').val(startDate);
+            modal.find('#id_end_date').val(endDate);
+            modal.find('#id_start_time').val(startTime);
+            modal.find('#id_end_time').val(endTime);
+        });
+
+        // تغییر تم و ذخیره آن در کوکی‌ها
+        $('#toggleTheme').on('click', function() {
+            $('body').toggleClass('dark-mode');
+            let theme = $('body').hasClass('dark-mode') ? 'dark' : 'light';
+            document.cookie = "theme=" + theme + "; path=/";
+        });
+
+        // اعمال تم هنگام بارگذاری صفحه
+        let themeCookie = document.cookie.split('; ').find(row => row.startsWith('theme='));
+        if (themeCookie) {
+            let theme = themeCookie.split('=')[1];
+            if (theme === 'dark') {
+                $('body').addClass('dark-mode');
+            } else {
+                $('body').removeClass('dark-mode');
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% load static %}
+<div class="form-group">
+    <label for="operator">اپراتور:</label>
+    <select id="operator" name="operator" class="form-control">
+        {% for operator in operators %}
+        <option value="{{ operator.id }}">{{ operator.personnel_code }} - {{ operator.first_name }} {{ operator.last_name }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="form-group">
+    <label for="dump_truck">دامپ تراک:</label>
+    <select id="dump_truck" name="dump_truck" class="form-control">
+        {% for dump_truck in dump_trucks %}
+        <option value="{{ dump_truck.id }}">{{ dump_truck.code }} - {{ dump_truck.model }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="form-group">
+    <label for="start_date">تاریخ شروع:</label>
+    <input type="text" id="start_date" name="start_date" class="form-control persian-datepicker">
+</div>
+<div class="form-group">
+    <label for="start_time">زمان شروع:</label>
+    <input type="time" id="start_time" name="start_time" class="form-control">
+</div>
+<div class="form-group">
+    <label for="end_date">تاریخ پایان:</label>
+    <input type="text" id="end_date" name="end_date" class="form-control persian-datepicker">
+</div>
+<div class="form-group">
+    <label for="end_time">زمان پایان:</label>
+    <input type="time" id="end_time" name="end_time" class="form-control">
+</div>
+<div class="form-group">
+    <label for="reason">علت خرابی:</label>
+    <select id="reason" name="reason" class="form-control">
+        {% for reason in reasons %}
+        <option value="{{ reason.id }}">{{ reason.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="form-group">
+    <label for="description">توضیحات:</label>
+    <textarea id="description" name="description" class="form-control"></textarea>
+</div>
+
+<script>
+    $(document).ready(function() {
+        console.log("Document ready - downtime form");
+        $(".persian-datepicker").persianDatepicker({
+            format: 'YYYY/MM/DD',
+            autoClose: true,
+            toolbox: {
+                calendarSwitch: {
+                    enabled: true
+                }
+            },
+            position: 'auto',
+            calendar: {
+                persian: {
+                    locale: 'fa'
+                }
+            }
+        });
+    });
+</script>

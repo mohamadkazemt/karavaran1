@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}بیشترین خرابی توسط اپراتورها{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>بیشترین خرابی توسط اپراتورها</h1>
+    <canvas id="operatorFailuresChart"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const ctx = document.getElementById('operatorFailuresChart').getContext('2d');
+        const labels = JSON.parse('{{ labels|escapejs }}');
+        const values = JSON.parse('{{ values|escapejs }}');
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'تعداد خرابی‌ها',
+                data: values,
+                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            }]
+        };
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+        new Chart(ctx, config);
+    });
+</script>
+{% endblock %}

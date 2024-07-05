@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block title %}لیست اپراتورها{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">لیست اپراتورها</h1>
+</div>
+<nav class="mb-4">
+    <ul class="nav nav-pills">
+        <li class="nav-item"><a class="nav-link" href="{% url 'downtime_list' %}">لیست خرابی‌ها</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'dump_truck_list' %}">لیست دستگاه‌ها</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'failure_reason_list' %}">لیست علت‌های خرابی</a></li>
+    </ul>
+</nav>
+{% if user.is_authenticated %}
+    <div class="d-flex justify-content-between mb-4">
+        <button class="btn btn-primary" data-toggle="modal" data-target="#addOperatorModal"><i class="fas fa-plus"></i> اضافه کردن اپراتور</button>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#importOperatorsModal"><i class="fas fa-file-import"></i> ایمپورت اپراتورها از اکسل</button>
+    </div>
+    <div class="d-flex justify-content-between mb-4">
+        <input class="form-control col-md-4 mb-2" id="searchInput" type="text" placeholder="جستجو...">
+        <select class="form-control col-md-2 mb-2" id="groupFilter">
+            <option value="">همه گروه‌ها</option>
+            <option value="a">A</option>
+            <option value="b">B</option>
+            <option value="c">C</option>
+            <option value="d">D</option>
+        </select>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>کد پرسنلی</th>
+                    <th>نام</th>
+                    <th>نام خانوادگی</th>
+                    <th>گروه</th>
+                    <th>شماره تماس</th>
+                    <th>سمت</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody id="operatorTable">
+                {% for operator in operators %}
+                    <tr>
+                        <td>{{ operator.personnel_code }}</td>
+                        <td>{{ operator.first_name }}</td>
+                        <td>{{ operator.last_name }}</td>
+                        <td>{{ operator.get_group_display }}</td>
+                        <td>{{ operator.phone_number }}</td>
+                        <td>{{ operator.position }}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editOperatorModal{{ operator.id }}"><i class="fas fa-edit"></i> ویرایش</button>
+                            <form method="post" action="{% url 'delete_operator' operator.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> حذف</button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    <!-- Edit Operator Modal -->
+                    <div class="modal fade" id="editOperatorModal{{ operator.id }}" tabindex="-1" role="dialog" aria-labelledby="editOperatorModalLabel{{ operator.id }}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'edit_operator' operator.id %}">
+                                    {% csrf_token %}
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="editOperatorModalLabel{{ operator.id }}">ویرایش اپراتور</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        {{ form.as_p }}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                                        <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Operator Modal -->
+    <div class="modal fade" id="addOperatorModal" tabindex="-1" role="dialog" aria-labelledby="addOperatorModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post" action="{% url 'operator_list' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addOperatorModalLabel">اضافه کردن اپراتور</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ form.as_p }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                        <button type="submit" class="btn btn-primary" name="add_operator">ذخیره</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Operators Modal -->
+    <div class="modal fade" id="importOperatorsModal" tabindex="-1" role="dialog" aria-labelledby="importOperatorsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post" enctype="multipart/form-data" action="{% url 'operator_list' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importOperatorsModalLabel">ایمپورت اپراتورها از اکسل</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ import_form.as_p }}
+                        <a href="{% url 'download_excel_template' %}" class="btn btn-info"><i class="fas fa-download"></i> دانلود الگوی اکسل</a>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                        <button type="submit" class="btn btn-primary" name="import_operators">ایمپورت</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+        لطفاً وارد شوید تا بتوانید اطلاعات را مشاهده کنید.
+    </div>
+{% endif %}
+{% endblock %}

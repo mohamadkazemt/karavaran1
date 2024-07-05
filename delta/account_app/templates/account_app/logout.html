@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block title %}خروج{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>شما از سیستم خارج شدید</h2>
+    <a href="{% url 'login' %}" class="btn btn-primary">ورود مجدد</a>
+</div>
+{% endblock %}

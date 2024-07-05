@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}لیست علت‌های خرابی{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">لیست علت‌های خرابی</h1>
+</div>
+<nav class="mb-4">
+    <ul class="nav nav-pills">
+        <li class="nav-item"><a class="nav-link" href="{% url 'operator_list' %}">لیست اپراتورها</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'dump_truck_list' %}">لیست دستگاه‌ها</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'downtime_list' %}">لیست خرابی‌ها</a></li>
+    </ul>
+</nav>
+{% if user.is_authenticated %}
+    <div class="d-flex justify-content-between mb-4">
+        <button class="btn btn-primary" data-toggle="modal" data-target="#addReasonModal"><i class="fas fa-plus"></i> اضافه کردن علت خرابی</button>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#importReasonsModal"><i class="fas fa-file-import"></i> ایمپورت علت‌های خرابی از اکسل</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>نام علت خرابی</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reason in reasons %}
+                    <tr>
+                        <td>{{ reason.name }}</td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteReasonModal{{ reason.id }}"><i class="fas fa-trash"></i> حذف</button>
+                        </td>
+                    </tr>
+
+                    <!-- Delete Reason Modal -->
+                    <div class="modal fade" id="deleteReasonModal{{ reason.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteReasonModalLabel{{ reason.id }}" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <form method="post" action="{% url 'delete_reason' reason.id %}">
+                                    {% csrf_token %}
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteReasonModalLabel{{ reason.id }}">حذف علت خرابی</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        آیا مطمئن هستید که می‌خواهید این علت خرابی را حذف کنید؟
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                                        <button type="submit" class="btn btn-danger">حذف</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Add Reason Modal -->
+    <div class="modal fade" id="addReasonModal" tabindex="-1" role="dialog" aria-labelledby="addReasonModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post" action="{% url 'failure_reason_list' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addReasonModalLabel">اضافه کردن علت خرابی</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ form.as_p }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                        <button type="submit" class="btn btn-primary" name="add_reason">ذخیره</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Reasons Modal -->
+    <div class="modal fade" id="importReasonsModal" tabindex="-1" role="dialog" aria-labelledby="importReasonsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <form method="post" enctype="multipart/form-data" action="{% url 'failure_reason_list' %}">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="importReasonsModalLabel">ایمپورت علت‌های خرابی از اکسل</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{ import_form.as_p }}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">بستن</button>
+                        <button type="submit" class="btn btn-primary" name="import_reasons">ایمپورت</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-warning" role="alert">
+        لطفاً وارد شوید تا بتوانید اطلاعات را مشاهده کنید.
+    </div>
+{% endif %}
+{% endblock %}
